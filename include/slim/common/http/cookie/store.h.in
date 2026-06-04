@@ -32,7 +32,7 @@ public:
 	//If both expires and maxAge (Max-Age) are set, the set() call fails with a TypeError
 	// validate that these strings convert into std::chrono::system_clock::time_point
 	// Secure, HttpOnly, and Partitioned are flags.  In HTTP, they appear as standalone tokens (e.g., Secure) without a value
-	slim::SlimValue set(Cookie cookie) noexcept;
+	slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true) noexcept;
 	slim::SlimValue set(std::string_view string) noexcept;
 	slim::SlimValue set_cookies(std::string_view string) noexcept;
     slim::SlimValue set(std::string_view name, std::string_view value) noexcept;
