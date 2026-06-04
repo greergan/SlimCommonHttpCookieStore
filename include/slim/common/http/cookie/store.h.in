@@ -1,0 +1,46 @@
+#ifndef SLIM_COMMON_HTTP_COOKIE_STORE_H
+#define SLIM_COMMON_HTTP_COOKIE_STORE_H
+
+#include <cctype>
+#include <chrono>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <slim/SlimValue.hpp>
+
+namespace slim::common::http {
+	
+struct Cookie {
+	std::string domain;
+	std::string expires;
+	std::string max_age;
+	std::string name;
+	std::string path = "/";
+	std::string SameSite; // strict, lax or none
+	std::string value;
+	bool        httponly;
+	bool        partitioned;
+	bool        secure;
+};
+
+class CookieStore {
+public:
+	const std::vector<Cookie> entries() const noexcept { return jar_; }
+	void erase(std::string_view name) noexcept;
+	std::string_view get(std::string_view name) noexcept;
+	//If both expires and maxAge (Max-Age) are set, the set() call fails with a TypeError
+	// validate that these strings convert into std::chrono::system_clock::time_point
+	// Secure, HttpOnly, and Partitioned are flags.  In HTTP, they appear as standalone tokens (e.g., Secure) without a value
+	slim::SlimValue set(Cookie cookie) noexcept;
+	slim::SlimValue set(std::string_view string) noexcept;
+	slim::SlimValue set_cookies(std::string_view string) noexcept;
+    slim::SlimValue set(std::string_view name, std::string_view value) noexcept;
+	slim::SlimValue serialize() noexcept;
+
+private:
+    std::vector<Cookie> jar_;
+};
+
+} // slim::common::http
+#endif // SLIM_COMMON_HTTP_COOKIE_STORE_H
