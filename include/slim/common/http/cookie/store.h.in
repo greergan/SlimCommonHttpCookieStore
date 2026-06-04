@@ -26,7 +26,7 @@ struct Cookie {
 
 class CookieStore {
 public:
-	const std::vector<Cookie> entries() const noexcept { return jar_; }
+	const std::vector<Cookie>& entries() const noexcept { return jar_; }
 	void erase(std::string_view name) noexcept;
 	std::string_view get(std::string_view name) noexcept;
 	//If both expires and maxAge (Max-Age) are set, the set() call fails with a TypeError
@@ -36,7 +36,7 @@ public:
 	slim::SlimValue set(std::string_view string) noexcept;
 	slim::SlimValue set_cookies(std::string_view string) noexcept;
     slim::SlimValue set(std::string_view name, std::string_view value) noexcept;
-	slim::SlimValue serialize() noexcept;
+	std::string serialize() noexcept;
 
 private:
     std::vector<Cookie> jar_;

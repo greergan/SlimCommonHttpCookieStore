@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <format>
+#include <sstream>
 #include <vector>
 #include <slim/common/http/cookie/store.h>
 
@@ -125,18 +126,26 @@ slim::SlimValue slim::common::http::CookieStore::set(Cookie&& cookie, const bool
             jar_.push_back(std::move(cookie));
 
         return true;
+    } catch (const std::bad_alloc& e) {
+        return slim::SlimValue{}.set_error(std::format("allocation failure: {}", e.what()));
+    } catch (const std::length_error& e) {
+        return slim::SlimValue{}.set_error(std::format("container length error: {}", e.what()));
+    } catch (const std::exception& e) {
+        return slim::SlimValue{}.set_error(std::format("unexpected exception: {}", e.what()));
     } catch (...) {
-        return slim::SlimValue{}.set_error("allocation failure");
+        return slim::SlimValue{}.set_error("unknown exception");
     }
 }
 
 slim::SlimValue slim::common::http::CookieStore::set(std::string_view string) noexcept {
     auto parts = split(string, ';');
-    if (parts.empty()) return false;
+    if (parts.empty())
+        return slim::SlimValue{}.set_error("cookie string is empty");
 
     // First element contains the Name=Value pair
     size_t kv_sep = parts[0].find('=');
-    if (kv_sep == std::string_view::npos) return slim::SlimValue(false);
+    if (kv_sep == std::string_view::npos)
+        return slim::SlimValue{}.set_error(std::format("'{}' => malformed cookie: missing '='", string));
 
     Cookie cookie;
     cookie.name = std::string(trim(parts[0].substr(0, kv_sep)));
@@ -195,7 +204,7 @@ slim::SlimValue slim::common::http::CookieStore::set(std::string_view name, std:
     return set(std::move(cookie));
 }
 
-slim::SlimValue slim::common::http::CookieStore::serialize() noexcept {
+std::string slim::common::http::CookieStore::serialize() noexcept {
     // Generates a traditional outbound cookie request header segment (e.g., "a=1; b=2")
     std::string serialized;
     for (size_t i = 0; i < jar_.size(); ++i) {
@@ -204,7 +213,7 @@ slim::SlimValue slim::common::http::CookieStore::serialize() noexcept {
         }
         serialized += jar_[i].name + "=" + jar_[i].value;
     }
-    return slim::SlimValue(serialized);
+    return serialized;
 }
 
 } // namespace slim::common::http
