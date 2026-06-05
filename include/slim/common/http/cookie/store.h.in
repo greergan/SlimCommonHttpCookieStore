@@ -26,17 +26,18 @@ struct Cookie {
 
 class CookieStore {
 public:
-	const std::vector<Cookie>& entries() const noexcept { return jar_; }
-	void erase(std::string_view name) noexcept;
-	std::string_view get(std::string_view name) noexcept;
+	const std::vector<Cookie>& entries() const { return jar_; }
+	void erase(std::string_view name);
+	std::string_view get(std::string_view name);
 	//If both expires and maxAge (Max-Age) are set, the set() call fails with a TypeError
 	// validate that these strings convert into std::chrono::system_clock::time_point
 	// Secure, HttpOnly, and Partitioned are flags.  In HTTP, they appear as standalone tokens (e.g., Secure) without a value
-	slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true) noexcept;
-	slim::SlimValue set(std::string_view string) noexcept;
-	slim::SlimValue set_cookies(std::string_view string) noexcept;
-    slim::SlimValue set(std::string_view name, std::string_view value) noexcept;
-	std::string serialize() noexcept;
+	slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true);
+	slim::SlimValue set(std::string_view string);
+	slim::SlimValue set_cookies(std::string_view string);
+    slim::SlimValue set(std::string_view name, std::string_view value);
+	std::string serialize();
+	std::string serialize_headers();
 
 private:
     std::vector<Cookie> jar_;

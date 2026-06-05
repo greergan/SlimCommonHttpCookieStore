@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include <format>
 #include <slim/common/http/cookie/store.h>
+#include <slim/SlimValue.hpp>
 
 using slim::common::http::Cookie;
 using slim::common::http::CookieStore;
@@ -306,7 +308,7 @@ TEST_CASE("serialize - single cookie", "[cookie][serialize]") {
     CookieStore store;
 
     REQUIRE(store.set("a", "1"));
-    REQUIRE(store.serialize() == "a=1");
+    REQUIRE(store.serialize() == "Cookie: a=1");
 }
 
 TEST_CASE("serialize - multiple cookies joined by '; '", "[cookie][serialize]") {
@@ -315,7 +317,7 @@ TEST_CASE("serialize - multiple cookies joined by '; '", "[cookie][serialize]") 
     REQUIRE(store.set("a", "1"));
     REQUIRE(store.set("b", "2"));
     REQUIRE(store.set("c", "3"));
-    REQUIRE(store.serialize() == "a=1; b=2; c=3");
+    REQUIRE(store.serialize() == "Cookie: a=1; b=2; c=3");
 }
 
 TEST_CASE("serialize - round-trips set_cookies output", "[cookie][serialize]") {
@@ -323,7 +325,7 @@ TEST_CASE("serialize - round-trips set_cookies output", "[cookie][serialize]") {
 
     const std::string_view header = "x=10; y=20; z=30";
     REQUIRE(store.set_cookies(header));
-    REQUIRE(store.serialize() == header);
+    REQUIRE(store.serialize() == std::format("Cookie: {}", header));
 }
 
 // ---------------------------------------------------------------------------

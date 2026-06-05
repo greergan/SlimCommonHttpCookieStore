@@ -9,7 +9,7 @@ namespace slim::common::http {
 namespace {
 
 // Helper to trim leading and trailing whitespace from a string_view
-std::string_view trim(std::string_view str) noexcept {
+std::string_view trim(std::string_view str) {
     while (!str.empty() && std::isspace(static_cast<unsigned char>(str.front()))) {
         str.remove_prefix(1);
     }
@@ -20,7 +20,7 @@ std::string_view trim(std::string_view str) noexcept {
 }
 
 // Case-insensitive string comparison helper
-bool iequals(std::string_view lhs, std::string_view rhs) noexcept {
+bool iequals(std::string_view lhs, std::string_view rhs) {
     if (lhs.size() != rhs.size()) return false;
     for (size_t i = 0; i < lhs.size(); ++i) {
         if (std::tolower(static_cast<unsigned char>(lhs[i])) != 
@@ -32,20 +32,29 @@ bool iequals(std::string_view lhs, std::string_view rhs) noexcept {
 }
 
 // Splits a string_view by a delimiter character
-std::vector<std::string_view> split(std::string_view str, char delim) noexcept {
+std::vector<std::string_view> split(std::string_view str, char delim) {
     std::vector<std::string_view> tokens;
     size_t start = 0;
     size_t end = str.find(delim);
+
     while (end != std::string_view::npos) {
-        tokens.push_back(str.substr(start, end - start));
+        // Only add the token if it is not empty
+        if (start != end) {
+            tokens.push_back(str.substr(start, end - start));
+        }
         start = end + 1;
         end = str.find(delim, start);
     }
-    tokens.push_back(str.substr(start));
-    return tokens;
-}
 
-slim::SlimValue validate_expires(const std::string& s) noexcept {
+    // Handle the last token (after the last delimiter)
+    if (start < str.size()) {
+        tokens.push_back(str.substr(start));
+    }
+
+    return tokens;
+}   
+
+slim::SlimValue validate_expires(const std::string& s) {
     if (s.empty())
         return true;
 
@@ -66,7 +75,7 @@ slim::SlimValue validate_expires(const std::string& s) noexcept {
     return slim::SlimValue{}.set_error(std::format("'{}' => invalid expires format", s));
 }
 
-slim::SlimValue validate_max_age(const std::string& s) noexcept {
+slim::SlimValue validate_max_age(const std::string& s) {
     if (s.empty())
         return true;
 
@@ -86,7 +95,7 @@ slim::SlimValue validate_max_age(const std::string& s) noexcept {
 
 } // anonymous namespace
 
-void slim::common::http::CookieStore::erase(std::string_view name) noexcept {
+void slim::common::http::CookieStore::erase(std::string_view name) {
     auto it = std::find_if(jar_.begin(), jar_.end(), [name](const Cookie& c) {
         return c.name == name;
     });
@@ -96,7 +105,7 @@ void slim::common::http::CookieStore::erase(std::string_view name) noexcept {
     }
 }
 
-std::string_view slim::common::http::CookieStore::get(std::string_view name) noexcept {
+std::string_view slim::common::http::CookieStore::get(std::string_view name) {
     auto it = std::find_if(jar_.begin(), jar_.end(), [name](const Cookie& c) {
         return c.name == name;
     });
@@ -107,37 +116,34 @@ std::string_view slim::common::http::CookieStore::get(std::string_view name) noe
     return {};
 }
 
-slim::SlimValue slim::common::http::CookieStore::set(Cookie&& cookie, const bool validate_expiry) noexcept {
-    try {
-        if(validate_expiry) {
-            if (auto r = validate_expires(cookie.expires); !r)
-                return r;
+slim::SlimValue slim::common::http::CookieStore::set(Cookie&& cookie, const bool validate_expiry) {
+    if(validate_expiry) {
+        if (auto r = validate_expires(cookie.expires); !r)
+            return r;
 
-            if (auto r = validate_max_age(cookie.max_age); !r)
-                return r;
-        }
-
-        auto it = std::find_if(jar_.begin(), jar_.end(),
-            [&](const Cookie& c) { return c.name == cookie.name; });
-
-        if (it != jar_.end())
-            *it = std::move(cookie);
-        else
-            jar_.push_back(std::move(cookie));
-
-        return true;
-    } catch (const std::bad_alloc& e) {
-        return slim::SlimValue{}.set_error(std::format("allocation failure: {}", e.what()));
-    } catch (const std::length_error& e) {
-        return slim::SlimValue{}.set_error(std::format("container length error: {}", e.what()));
-    } catch (const std::exception& e) {
-        return slim::SlimValue{}.set_error(std::format("unexpected exception: {}", e.what()));
-    } catch (...) {
-        return slim::SlimValue{}.set_error("unknown exception");
+        if (auto r = validate_max_age(cookie.max_age); !r)
+            return r;
     }
+
+    auto it = std::find_if(jar_.begin(), jar_.end(),
+        [&](const Cookie& c) { return c.name == cookie.name; });
+
+    if (it != jar_.end())
+        *it = std::move(cookie);
+    else
+        jar_.push_back(std::move(cookie));
+
+    return true;
 }
 
-slim::SlimValue slim::common::http::CookieStore::set(std::string_view string) noexcept {
+slim::SlimValue slim::common::http::CookieStore::set(std::string_view name, std::string_view value) {
+    Cookie cookie;
+    cookie.name  = std::string(trim(name));
+    cookie.value = std::string(trim(value));
+    return set(std::move(cookie));
+}
+
+slim::SlimValue slim::common::http::CookieStore::set(std::string_view string) {
     auto parts = split(string, ';');
     if (parts.empty())
         return slim::SlimValue{}.set_error("cookie string is empty");
@@ -178,7 +184,7 @@ slim::SlimValue slim::common::http::CookieStore::set(std::string_view string) no
     return set(std::move(cookie));
 }
 
-slim::SlimValue CookieStore::set_cookies(std::string_view sv) noexcept {
+slim::SlimValue slim::common::http::CookieStore::set_cookies(std::string_view sv) {
     auto pairs = split(sv, ';');
 
     for (std::string_view pair : pairs) {
@@ -197,23 +203,37 @@ slim::SlimValue CookieStore::set_cookies(std::string_view sv) noexcept {
     return true;
 }
 
-slim::SlimValue slim::common::http::CookieStore::set(std::string_view name, std::string_view value) noexcept {
-    Cookie cookie;
-    cookie.name = std::string(trim(name));
-    cookie.value = std::string(trim(value));
-    return set(std::move(cookie));
-}
-
-std::string slim::common::http::CookieStore::serialize() noexcept {
-    // Generates a traditional outbound cookie request header segment (e.g., "a=1; b=2")
+std::string slim::common::http::CookieStore::serialize() {
     std::string serialized;
-    for (size_t i = 0; i < jar_.size(); ++i) {
-        if (i > 0) {
-            serialized += "; ";
+    if(jar_.size() > 0) {
+        serialized = "Cookie: ";
+        for (size_t i = 0; i < jar_.size(); ++i) {
+            if (i > 0)
+                serialized += "; ";
+            serialized += jar_[i].name + "=" + jar_[i].value;
         }
-        serialized += jar_[i].name + "=" + jar_[i].value;
     }
     return serialized;
+}
+
+std::string slim::common::http::CookieStore::serialize_headers() {
+    std::string headers;
+    for (const auto& cookie : jar_) {
+        headers += "Set-Cookie: " + cookie.name + "=" + cookie.value;
+
+        if (!cookie.domain.empty())   headers += "; Domain="  + cookie.domain;
+        if (!cookie.expires.empty())  headers += "; Expires=" + cookie.expires;
+        if (!cookie.max_age.empty())  headers += "; Max-Age=" + cookie.max_age;
+        if (!cookie.path.empty())     headers += "; Path="    + cookie.path;
+        if (!cookie.SameSite.empty()) headers += "; SameSite="+ cookie.SameSite;
+
+        if (cookie.secure)      headers += "; Secure";
+        if (cookie.httponly)    headers += "; HttpOnly";
+        if (cookie.partitioned) headers += "; Partitioned";
+
+        headers += "\r\n";
+    }
+    return headers;
 }
 
 } // namespace slim::common::http
