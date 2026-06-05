@@ -9,6 +9,9 @@
 #include <unordered_map>
 #include <slim/SlimValue.hpp>
 
+#define SLIMCOMMONHTTPCOOKIESTORE_VERSION  "@SLIMCOMMONHTTPCOOKIESTORE_VERSION@"
+#define SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH "@SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH@"
+
 namespace slim::common::http {
 	
 struct Cookie {
