@@ -16,12 +16,12 @@ struct Cookie {
 	std::string expires;
 	std::string max_age;
 	std::string name;
-	std::string path = "/";
+	std::string path;
 	std::string SameSite; // strict, lax or none
 	std::string value;
-	bool        httponly;
-	bool        partitioned;
-	bool        secure;
+	bool        httponly = false;
+	bool        partitioned = false;
+	bool        secure = false;
 };
 
 class CookieStore {
