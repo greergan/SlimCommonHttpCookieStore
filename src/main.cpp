@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <ctime>
 #include <format>
 #include <sstream>
 #include <vector>
@@ -55,42 +56,23 @@ std::vector<std::string_view> split(std::string_view str, char delim) {
 }   
 
 slim::SlimValue validate_expires(const std::string& s) {
-    if (s.empty())
-        return true;
-
     std::tm tm{};
 
     // RFC 1123: "Wed, 21 Oct 2015 07:28:00 GMT"
     std::istringstream ss{s};
+    ss.imbue(std::locale("C"));
     ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S");
     if (!ss.fail())
         return true;
 
     // Obsolete RFC 850: "Wednesday, 21-Oct-15 07:28:00 GMT"
     std::istringstream ss_alt{s};
+    ss.imbue(std::locale("C"));
     ss_alt >> std::get_time(&tm, "%A, %d-%b-%y %H:%M:%S");
     if (!ss_alt.fail())
         return true;
     
     return slim::SlimValue{}.set_error(std::format("'{}' => invalid expires format", s));
-}
-
-slim::SlimValue validate_max_age(const std::string& s) {
-    if (s.empty())
-        return true;
-
-    size_t start = (s[0] == '-') ? 1 : 0;
-    if (start == s.size()) {
-        return slim::SlimValue{}.set_error(std::format("'{}' => max-age must not be only a sign character", s));
-    }
-
-    if (!std::ranges::all_of(s.begin() + static_cast<std::string::difference_type>(start), s.end(), [](char c) {
-        return std::isdigit(static_cast<unsigned char>(c));
-    })) {
-        return slim::SlimValue{}.set_error(std::format("'{}' => max-age contains non-digit characters", s));
-    }
-
-    return true;
 }
 
 } // anonymous namespace
@@ -117,12 +99,14 @@ const std::string slim::common::http::CookieStore::get(std::string_view name) co
 }
 
 slim::SlimValue slim::common::http::CookieStore::set(Cookie&& cookie, const bool validate_expiry) {
-    if(validate_expiry) {
-        if (auto r = validate_expires(cookie.expires); !r)
-            return r;
+    if(!cookie.expires.empty() && !cookie.max_age.empty())
+        return slim::SlimValue{false}.set_error("Use exactly one of either Expires or Max-Age");
 
-        if (auto r = validate_max_age(cookie.max_age); !r)
-            return r;
+    if(validate_expiry) {
+        if(!cookie.expires.empty()) {
+            if (auto r = validate_expires(cookie.expires); !r)
+                return r;
+        }
     }
 
     auto it = std::find_if(jar_.begin(), jar_.end(),

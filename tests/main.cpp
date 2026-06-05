@@ -97,35 +97,6 @@ TEST_CASE("set(Cookie&&) - valid positive max-age is accepted", "[cookie][set_co
     REQUIRE(store.set(std::move(c)));
 }
 
-TEST_CASE("set(Cookie&&) - valid negative max-age is accepted", "[cookie][set_cookie][max_age]") {
-    CookieStore store;
-
-    Cookie c    = make_cookie("a", "1");
-    c.max_age   = "-1";
-
-    REQUIRE(store.set(std::move(c)));
-}
-
-TEST_CASE("set(Cookie&&) - max-age with only a sign char is rejected", "[cookie][set_cookie][max_age]") {
-    CookieStore store;
-
-    Cookie c    = make_cookie("a", "1");
-    c.max_age   = "-";
-
-    auto r = store.set(std::move(c));
-    REQUIRE(!r);
-}
-
-TEST_CASE("set(Cookie&&) - max-age with non-digit chars is rejected", "[cookie][set_cookie][max_age]") {
-    CookieStore store;
-
-    Cookie c    = make_cookie("a", "1");
-    c.max_age   = "12x4";
-
-    auto r = store.set(std::move(c));
-    REQUIRE(!r);
-}
-
 TEST_CASE("set(Cookie&&) - validate_expiry=false skips validation", "[cookie][set_cookie][expires]") {
     CookieStore store;
 
@@ -352,7 +323,6 @@ TEST_CASE("serialize_headers - cookie with all optional attributes", "[cookie][s
     Cookie c      = make_cookie("id", "42");
     c.domain      = "example.com";
     c.expires     = "Wed, 21 Oct 2015 07:28:00 GMT";
-    c.max_age     = "3600";
     c.path        = "/";
     c.same_site    = "Strict";
     c.secure      = true;
@@ -364,7 +334,6 @@ TEST_CASE("serialize_headers - cookie with all optional attributes", "[cookie][s
         "Set-Cookie: id=42"
         "; Domain=example.com"
         "; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
-        "; Max-Age=3600"
         "; Path=/"
         "; SameSite=Strict"
         "; Secure"
