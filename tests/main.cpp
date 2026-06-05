@@ -185,7 +185,7 @@ TEST_CASE("set(string_view) - parses SameSite attribute", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; SameSite=Strict"));
-    REQUIRE(store.entries().front().SameSite == "Strict");
+    REQUIRE(store.entries().front().same_site == "Strict");
 }
 
 TEST_CASE("set(string_view) - parses Max-Age attribute", "[cookie][parse]") {
@@ -207,7 +207,7 @@ TEST_CASE("set(string_view) - parses full attribute set", "[cookie][parse]") {
     REQUIRE(c.path    == "/");
     REQUIRE(c.secure);
     REQUIRE(c.httponly);
-    REQUIRE(c.SameSite == "Lax");
+    REQUIRE(c.same_site == "Lax");
 }
 
 TEST_CASE("set(string_view) - attribute names are case-insensitive", "[cookie][parse]") {
@@ -218,7 +218,7 @@ TEST_CASE("set(string_view) - attribute names are case-insensitive", "[cookie][p
     auto c = store.entries().front();
     REQUIRE(c.secure);
     REQUIRE(c.httponly);
-    REQUIRE(c.SameSite == "none");
+    REQUIRE(c.same_site == "none");
 }
 
 TEST_CASE("set(string_view) - missing '=' returns error", "[cookie][parse][error]") {
@@ -354,7 +354,7 @@ TEST_CASE("serialize_headers - cookie with all optional attributes", "[cookie][s
     c.expires     = "Wed, 21 Oct 2015 07:28:00 GMT";
     c.max_age     = "3600";
     c.path        = "/";
-    c.SameSite    = "Strict";
+    c.same_site    = "Strict";
     c.secure      = true;
     c.httponly    = true;
     c.partitioned = true;

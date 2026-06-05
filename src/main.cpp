@@ -68,7 +68,7 @@ slim::SlimValue validate_expires(const std::string& s) {
 
     // Obsolete RFC 850: "Wednesday, 21-Oct-15 07:28:00 GMT"
     std::istringstream ss_alt{s};
-    ss_alt >> std::get_time(&tm, "%a, %d-%b-%y %H:%M:%S");
+    ss_alt >> std::get_time(&tm, "%A, %d-%b-%y %H:%M:%S");
     if (!ss_alt.fail())
         return true;
     
@@ -95,9 +95,9 @@ slim::SlimValue validate_max_age(const std::string& s) {
 
 } // anonymous namespace
 
-void slim::common::http::CookieStore::erase(std::string_view name) {
-    auto it = std::find_if(jar_.begin(), jar_.end(), [name](const Cookie& c) {
-        return c.name == name;
+void slim::common::http::CookieStore::erase(std::string_view name, std::string_view domain, std::string_view path) {
+    auto it = std::find_if(jar_.begin(), jar_.end(), [name, domain, path](const Cookie& c) {
+        return c.name == name && c.domain == domain && c.path == path;
     });
 
     if (it != jar_.end()) {
@@ -105,7 +105,7 @@ void slim::common::http::CookieStore::erase(std::string_view name) {
     }
 }
 
-std::string_view slim::common::http::CookieStore::get(std::string_view name) {
+const std::string slim::common::http::CookieStore::get(std::string_view name) const {
     auto it = std::find_if(jar_.begin(), jar_.end(), [name](const Cookie& c) {
         return c.name == name;
     });
@@ -177,7 +177,7 @@ slim::SlimValue slim::common::http::CookieStore::set(std::string_view string) {
             else if (iequals(key, "Expires")) cookie.expires = std::string(val);
             else if (iequals(key, "Max-Age")) cookie.max_age = std::string(val);
             else if (iequals(key, "Path")) cookie.path = std::string(val);
-            else if (iequals(key, "SameSite")) cookie.SameSite = std::string(val);
+            else if (iequals(key, "SameSite")) cookie.same_site = std::string(val);
         }
     }
 
@@ -205,7 +205,7 @@ slim::SlimValue slim::common::http::CookieStore::set_cookies(std::string_view sv
 
 std::string slim::common::http::CookieStore::serialize() {
     std::string serialized;
-    if(jar_.size() > 0) {
+    if(!jar_.empty()) {
         serialized = "Cookie: ";
         for (size_t i = 0; i < jar_.size(); ++i) {
             if (i > 0)
@@ -225,7 +225,7 @@ std::string slim::common::http::CookieStore::serialize_headers() {
         if (!cookie.expires.empty())  headers += "; Expires=" + cookie.expires;
         if (!cookie.max_age.empty())  headers += "; Max-Age=" + cookie.max_age;
         if (!cookie.path.empty())     headers += "; Path="    + cookie.path;
-        if (!cookie.SameSite.empty()) headers += "; SameSite="+ cookie.SameSite;
+        if (!cookie.same_site.empty()) headers += "; SameSite="+ cookie.same_site;
 
         if (cookie.secure)      headers += "; Secure";
         if (cookie.httponly)    headers += "; HttpOnly";
