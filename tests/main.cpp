@@ -329,6 +329,107 @@ TEST_CASE("serialize - round-trips set_cookies output", "[cookie][serialize]") {
 }
 
 // ---------------------------------------------------------------------------
+// serialize_headers
+// ---------------------------------------------------------------------------
+
+TEST_CASE("serialize_headers - empty store returns empty string", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    CHECK(store.serialize_headers() == "");
+}
+
+TEST_CASE("serialize_headers - single minimal cookie", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    Cookie c = make_cookie("session", "abc123");
+    REQUIRE(store.set(std::move(c)));
+    CHECK(store.serialize_headers() == "Set-Cookie: session=abc123\r\n");
+}
+
+TEST_CASE("serialize_headers - cookie with all optional attributes", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    Cookie c      = make_cookie("id", "42");
+    c.domain      = "example.com";
+    c.expires     = "Wed, 21 Oct 2015 07:28:00 GMT";
+    c.max_age     = "3600";
+    c.path        = "/";
+    c.SameSite    = "Strict";
+    c.secure      = true;
+    c.httponly    = true;
+    c.partitioned = true;
+    REQUIRE(store.set(std::move(c)));
+
+    const std::string expected =
+        "Set-Cookie: id=42"
+        "; Domain=example.com"
+        "; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
+        "; Max-Age=3600"
+        "; Path=/"
+        "; SameSite=Strict"
+        "; Secure"
+        "; HttpOnly"
+        "; Partitioned"
+        "\r\n";
+
+    CHECK(store.serialize_headers() == expected);
+}
+
+TEST_CASE("serialize_headers - multiple cookies each get their own Set-Cookie line", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    REQUIRE(store.set(make_cookie("foo", "1")));
+
+    Cookie b = make_cookie("bar", "2");
+    b.path   = "/api";
+    REQUIRE(store.set(std::move(b)));
+
+    const std::string result = store.serialize_headers();
+    CHECK(result.find("Set-Cookie: foo=1\r\n")            != std::string::npos);
+    CHECK(result.find("Set-Cookie: bar=2; Path=/api\r\n") != std::string::npos);
+}
+
+TEST_CASE("serialize_headers - boolean flags omitted when false", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    Cookie c      = make_cookie("plain", "val");
+    REQUIRE(store.set(std::move(c)));
+
+    const std::string result = store.serialize_headers();
+    CHECK(result.find("Secure")      == std::string::npos);
+    CHECK(result.find("HttpOnly")    == std::string::npos);
+    CHECK(result.find("Partitioned") == std::string::npos);
+}
+
+TEST_CASE("serialize_headers - empty optional string attributes are omitted", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    REQUIRE(store.set(make_cookie("x", "y")));
+
+    const std::string result = store.serialize_headers();
+    CHECK(result.find("Domain")   == std::string::npos);
+    CHECK(result.find("Expires")  == std::string::npos);
+    CHECK(result.find("Max-Age")  == std::string::npos);
+    CHECK(result.find("Path")     == std::string::npos);
+    CHECK(result.find("SameSite") == std::string::npos);
+}
+
+TEST_CASE("serialize_headers - overwritten cookie reflects updated value", "[cookie][serialize_headers]") {
+    CookieStore store;
+
+    REQUIRE(store.set(make_cookie("token", "old")));
+
+    Cookie c2   = make_cookie("token", "new");
+    c2.secure   = true;
+    REQUIRE(store.set(std::move(c2)));
+
+    const std::string result = store.serialize_headers();
+    CHECK(result.find("token=old") == std::string::npos);
+    CHECK(result.find("token=new") != std::string::npos);
+    CHECK(result.find("Secure")    != std::string::npos);
+}
+
+// ---------------------------------------------------------------------------
 // entries
 // ---------------------------------------------------------------------------
 
