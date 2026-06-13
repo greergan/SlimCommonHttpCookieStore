@@ -2,13 +2,13 @@
 #define SLIM_COMMON_HTTP_COOKIE_STORE_H
 
 #include <cctype>
-#include <chrono>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
+
+#include <slim/common/http/cookie.h>
+
 #include <slim/SlimValue.hpp>
 
 #define SLIMCOMMONHTTPCOOKIESTORE_VERSION  "@SLIMCOMMONHTTPCOOKIESTORE_VERSION@"
@@ -16,29 +16,17 @@
 
 namespace slim::common::http {
 
-struct Cookie {
-    std::string domain;
-    std::string expires;
-    std::string max_age;
-    std::string name;
-    std::string path;
-    std::string same_site; // strict, lax or none
-    std::string value;
-    bool        httponly = false;
-    bool        partitioned = false;
-    bool        secure = false;
-};
-
 class CookieStore {
 public:
     const std::vector<std::shared_ptr<Cookie>>& entries() const { return store; }
-    void erase(std::string_view name, std::string_view path, std::string_view domain);
+    void erase(std::string_view name, std::string_view domain, std::string_view path);
     const std::string get(std::string_view name) const;
-    slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true);
     slim::SlimValue set(std::string_view string);
-    slim::SlimValue set_cookies(std::string_view string);
     slim::SlimValue set(std::string_view name, std::string_view value);
-    std::string serialize_headers();
+    slim::SlimValue set(Cookie&& cookie);
+    slim::SlimValue set(std::shared_ptr<Cookie> cookie);
+    slim::SlimValue set_cookies(std::string_view string);
+    std::string serialize();
 
 private:
     std::vector<std::shared_ptr<Cookie>> store;
