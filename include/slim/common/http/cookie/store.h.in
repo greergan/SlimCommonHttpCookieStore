@@ -3,10 +3,12 @@
 
 #include <cctype>
 #include <chrono>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 #include <slim/SlimValue.hpp>
 
 #define SLIMCOMMONHTTPCOOKIESTORE_VERSION  "@SLIMCOMMONHTTPCOOKIESTORE_VERSION@"
@@ -29,7 +31,7 @@ struct Cookie {
 
 class CookieStore {
 public:
-    const std::vector<Cookie>& entries() const { return store; }
+    const std::vector<std::shared_ptr<Cookie>>& entries() const { return store; }
     void erase(std::string_view name, std::string_view domain = {}, std::string_view path = {});
     const std::string get(std::string_view name) const;
     slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true);
@@ -40,7 +42,7 @@ public:
     std::string serialize_headers();
 
 private:
-    std::vector<Cookie> store;
+    std::vector<std::shared_ptr<Cookie>> store;
 };
 
 } // slim::common::http

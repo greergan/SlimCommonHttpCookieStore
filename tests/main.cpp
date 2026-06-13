@@ -63,8 +63,8 @@ TEST_CASE("set(Cookie&&) - inserts a well-formed cookie", "[cookie][set_cookie]"
 TEST_CASE("set(Cookie&&) - valid RFC 1123 expires is accepted", "[cookie][set_cookie][expires]") {
     CookieStore store;
 
-    Cookie c    = make_cookie("a", "1");
-    c.expires   = "Wed, 21 Oct 2015 07:28:00 GMT";
+    Cookie c  = make_cookie("a", "1");
+    c.expires = "Wed, 21 Oct 2015 07:28:00 GMT";
 
     REQUIRE(store.set(std::move(c)));
 }
@@ -72,8 +72,8 @@ TEST_CASE("set(Cookie&&) - valid RFC 1123 expires is accepted", "[cookie][set_co
 TEST_CASE("set(Cookie&&) - valid RFC 850 expires is accepted", "[cookie][set_cookie][expires]") {
     CookieStore store;
 
-    Cookie c    = make_cookie("a", "1");
-    c.expires   = "Wednesday, 21-Oct-15 07:28:00 GMT";
+    Cookie c  = make_cookie("a", "1");
+    c.expires = "Wednesday, 21-Oct-15 07:28:00 GMT";
 
     REQUIRE(store.set(std::move(c)));
 }
@@ -81,8 +81,8 @@ TEST_CASE("set(Cookie&&) - valid RFC 850 expires is accepted", "[cookie][set_coo
 TEST_CASE("set(Cookie&&) - invalid expires string is rejected", "[cookie][set_cookie][expires]") {
     CookieStore store;
 
-    Cookie c    = make_cookie("a", "1");
-    c.expires   = "not-a-date";
+    Cookie c  = make_cookie("a", "1");
+    c.expires = "not-a-date";
 
     auto r = store.set(std::move(c));
     REQUIRE(!r);
@@ -91,8 +91,8 @@ TEST_CASE("set(Cookie&&) - invalid expires string is rejected", "[cookie][set_co
 TEST_CASE("set(Cookie&&) - valid positive max-age is accepted", "[cookie][set_cookie][max_age]") {
     CookieStore store;
 
-    Cookie c    = make_cookie("a", "1");
-    c.max_age   = "3600";
+    Cookie c  = make_cookie("a", "1");
+    c.max_age = "3600";
 
     REQUIRE(store.set(std::move(c)));
 }
@@ -100,8 +100,8 @@ TEST_CASE("set(Cookie&&) - valid positive max-age is accepted", "[cookie][set_co
 TEST_CASE("set(Cookie&&) - validate_expiry=false skips validation", "[cookie][set_cookie][expires]") {
     CookieStore store;
 
-    Cookie c    = make_cookie("a", "1");
-    c.expires   = "not-a-date";
+    Cookie c  = make_cookie("a", "1");
+    c.expires = "not-a-date";
 
     REQUIRE(store.set(std::move(c), false));
 }
@@ -121,49 +121,49 @@ TEST_CASE("set(string_view) - parses Secure flag", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; Secure"));
-    REQUIRE(store.entries().front().secure);
+    REQUIRE(store.entries().front()->secure);
 }
 
 TEST_CASE("set(string_view) - parses HttpOnly flag", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; HttpOnly"));
-    REQUIRE(store.entries().front().httponly);
+    REQUIRE(store.entries().front()->httponly);
 }
 
 TEST_CASE("set(string_view) - parses Partitioned flag", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; Partitioned"));
-    REQUIRE(store.entries().front().partitioned);
+    REQUIRE(store.entries().front()->partitioned);
 }
 
 TEST_CASE("set(string_view) - parses Domain attribute", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; Domain=example.com"));
-    REQUIRE(store.entries().front().domain == "example.com");
+    REQUIRE(store.entries().front()->domain == "example.com");
 }
 
 TEST_CASE("set(string_view) - parses Path attribute", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; Path=/api"));
-    REQUIRE(store.entries().front().path == "/api");
+    REQUIRE(store.entries().front()->path == "/api");
 }
 
 TEST_CASE("set(string_view) - parses SameSite attribute", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; SameSite=Strict"));
-    REQUIRE(store.entries().front().same_site == "Strict");
+    REQUIRE(store.entries().front()->same_site == "Strict");
 }
 
 TEST_CASE("set(string_view) - parses Max-Age attribute", "[cookie][parse]") {
     CookieStore store;
 
     REQUIRE(store.set("s=1; Max-Age=3600"));
-    REQUIRE(store.entries().front().max_age == "3600");
+    REQUIRE(store.entries().front()->max_age == "3600");
 }
 
 TEST_CASE("set(string_view) - parses full attribute set", "[cookie][parse]") {
@@ -171,14 +171,14 @@ TEST_CASE("set(string_view) - parses full attribute set", "[cookie][parse]") {
 
     REQUIRE(store.set("id=99; Domain=example.com; Path=/; Secure; HttpOnly; SameSite=Lax"));
 
-    auto c = store.entries().front();
-    REQUIRE(c.name    == "id");
-    REQUIRE(c.value   == "99");
-    REQUIRE(c.domain  == "example.com");
-    REQUIRE(c.path    == "/");
-    REQUIRE(c.secure);
-    REQUIRE(c.httponly);
-    REQUIRE(c.same_site == "Lax");
+    const auto& c = store.entries().front();
+    REQUIRE(c->name      == "id");
+    REQUIRE(c->value     == "99");
+    REQUIRE(c->domain    == "example.com");
+    REQUIRE(c->path      == "/");
+    REQUIRE(c->secure);
+    REQUIRE(c->httponly);
+    REQUIRE(c->same_site == "Lax");
 }
 
 TEST_CASE("set(string_view) - attribute names are case-insensitive", "[cookie][parse]") {
@@ -186,10 +186,10 @@ TEST_CASE("set(string_view) - attribute names are case-insensitive", "[cookie][p
 
     REQUIRE(store.set("s=1; secure; httponly; samesite=none"));
 
-    auto c = store.entries().front();
-    REQUIRE(c.secure);
-    REQUIRE(c.httponly);
-    REQUIRE(c.same_site == "none");
+    const auto& c = store.entries().front();
+    REQUIRE(c->secure);
+    REQUIRE(c->httponly);
+    REQUIRE(c->same_site == "none");
 }
 
 TEST_CASE("set(string_view) - missing '=' returns error", "[cookie][parse][error]") {
@@ -238,7 +238,7 @@ TEST_CASE("set_cookies - malformed pair returns error", "[cookie][set_cookies][e
 // get
 // ---------------------------------------------------------------------------
 
-TEST_CASE("get - returns empty view for unknown name", "[cookie][get]") {
+TEST_CASE("get - returns empty string for unknown name", "[cookie][get]") {
     CookieStore store;
 
     REQUIRE(store.get("missing").empty());
@@ -312,8 +312,7 @@ TEST_CASE("serialize_headers - empty store returns empty string", "[cookie][seri
 TEST_CASE("serialize_headers - single minimal cookie", "[cookie][serialize_headers]") {
     CookieStore store;
 
-    Cookie c = make_cookie("session", "abc123");
-    REQUIRE(store.set(std::move(c)));
+    REQUIRE(store.set(make_cookie("session", "abc123")));
     CHECK(store.serialize_headers() == "Set-Cookie: session=abc123\r\n");
 }
 
@@ -324,7 +323,7 @@ TEST_CASE("serialize_headers - cookie with all optional attributes", "[cookie][s
     c.domain      = "example.com";
     c.expires     = "Wed, 21 Oct 2015 07:28:00 GMT";
     c.path        = "/";
-    c.same_site    = "Strict";
+    c.same_site   = "Strict";
     c.secure      = true;
     c.httponly    = true;
     c.partitioned = true;
@@ -361,8 +360,7 @@ TEST_CASE("serialize_headers - multiple cookies each get their own Set-Cookie li
 TEST_CASE("serialize_headers - boolean flags omitted when false", "[cookie][serialize_headers]") {
     CookieStore store;
 
-    Cookie c      = make_cookie("plain", "val");
-    REQUIRE(store.set(std::move(c)));
+    REQUIRE(store.set(make_cookie("plain", "val")));
 
     const std::string result = store.serialize_headers();
     CHECK(result.find("Secure")      == std::string::npos);
@@ -388,8 +386,8 @@ TEST_CASE("serialize_headers - overwritten cookie reflects updated value", "[coo
 
     REQUIRE(store.set(make_cookie("token", "old")));
 
-    Cookie c2   = make_cookie("token", "new");
-    c2.secure   = true;
+    Cookie c2 = make_cookie("token", "new");
+    c2.secure = true;
     REQUIRE(store.set(std::move(c2)));
 
     const std::string result = store.serialize_headers();
@@ -402,7 +400,7 @@ TEST_CASE("serialize_headers - overwritten cookie reflects updated value", "[coo
 // entries
 // ---------------------------------------------------------------------------
 
-TEST_CASE("entries - reflects current jar contents", "[cookie][entries]") {
+TEST_CASE("entries - reflects current store contents", "[cookie][entries]") {
     CookieStore store;
 
     REQUIRE(store.entries().empty());
