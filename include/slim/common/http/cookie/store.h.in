@@ -32,13 +32,12 @@ struct Cookie {
 class CookieStore {
 public:
     const std::vector<std::shared_ptr<Cookie>>& entries() const { return store; }
-    void erase(std::string_view name, std::string_view domain = {}, std::string_view path = {});
+    void erase(std::string_view name, std::string_view path, std::string_view domain);
     const std::string get(std::string_view name) const;
     slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true);
     slim::SlimValue set(std::string_view string);
     slim::SlimValue set_cookies(std::string_view string);
     slim::SlimValue set(std::string_view name, std::string_view value);
-    std::string serialize();
     std::string serialize_headers();
 
 private:

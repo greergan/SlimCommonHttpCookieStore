@@ -62,7 +62,7 @@ slim::SlimValue validate_expires(const std::string& s) {
 
 } // anonymous namespace
 
-void CookieStore::erase(std::string_view name, std::string_view domain, std::string_view path) {
+void CookieStore::erase(std::string_view name, std::string_view path, std::string_view domain) {
     auto it = std::find_if(store.begin(), store.end(), [name, domain, path](const std::shared_ptr<Cookie>& c) {
         return c->name == name && c->domain == domain && c->path == path;
     });

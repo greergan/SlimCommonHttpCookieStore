@@ -252,7 +252,7 @@ TEST_CASE("erase - removes an existing entry", "[cookie][erase]") {
     CookieStore store;
 
     REQUIRE(store.set("k", "v"));
-    store.erase("k");
+    store.erase("k", {}, {});
     REQUIRE(store.get("k").empty());
     REQUIRE(store.entries().empty());
 }
@@ -261,7 +261,7 @@ TEST_CASE("erase - no-op for unknown name", "[cookie][erase]") {
     CookieStore store;
 
     REQUIRE(store.set("k", "v"));
-    store.erase("other");
+    store.erase("other", {}, {});
     REQUIRE(store.entries().size() == 1);
 }
 
