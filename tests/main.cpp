@@ -266,40 +266,6 @@ TEST_CASE("erase - no-op for unknown name", "[cookie][erase]") {
 }
 
 // ---------------------------------------------------------------------------
-// serialize
-// ---------------------------------------------------------------------------
-
-TEST_CASE("serialize - empty store returns empty string", "[cookie][serialize]") {
-    CookieStore store;
-
-    REQUIRE(store.serialize().empty());
-}
-
-TEST_CASE("serialize - single cookie", "[cookie][serialize]") {
-    CookieStore store;
-
-    REQUIRE(store.set("a", "1"));
-    REQUIRE(store.serialize() == "Cookie: a=1");
-}
-
-TEST_CASE("serialize - multiple cookies joined by '; '", "[cookie][serialize]") {
-    CookieStore store;
-
-    REQUIRE(store.set("a", "1"));
-    REQUIRE(store.set("b", "2"));
-    REQUIRE(store.set("c", "3"));
-    REQUIRE(store.serialize() == "Cookie: a=1; b=2; c=3");
-}
-
-TEST_CASE("serialize - round-trips set_cookies output", "[cookie][serialize]") {
-    CookieStore store;
-
-    const std::string_view header = "x=10; y=20; z=30";
-    REQUIRE(store.set_cookies(header));
-    REQUIRE(store.serialize() == std::format("Cookie: {}", header));
-}
-
-// ---------------------------------------------------------------------------
 // serialize_headers
 // ---------------------------------------------------------------------------
 

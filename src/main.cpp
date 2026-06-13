@@ -159,18 +159,6 @@ slim::SlimValue CookieStore::set_cookies(std::string_view sv) {
     return true;
 }
 
-std::string CookieStore::serialize() {
-    std::string serialized;
-    if (!store.empty()) {
-        serialized = "Cookie: ";
-        for (size_t i = 0; i < store.size(); ++i) {
-            if (i > 0) serialized += "; ";
-            serialized += store[i]->name + "=" + store[i]->value;
-        }
-    }
-    return serialized;
-}
-
 std::string CookieStore::serialize_headers() {
     std::string headers;
     for (const auto& cookie : store) {
