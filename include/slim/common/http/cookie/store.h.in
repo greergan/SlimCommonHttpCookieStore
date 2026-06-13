@@ -13,34 +13,34 @@
 #define SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH "@SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH@"
 
 namespace slim::common::http {
-	
+
 struct Cookie {
-	std::string domain;
-	std::string expires;
-	std::string max_age;
-	std::string name;
-	std::string path;
-	std::string same_site; // strict, lax or none
-	std::string value;
-	bool        httponly = false;
-	bool        partitioned = false;
-	bool        secure = false;
+    std::string domain;
+    std::string expires;
+    std::string max_age;
+    std::string name;
+    std::string path;
+    std::string same_site; // strict, lax or none
+    std::string value;
+    bool        httponly = false;
+    bool        partitioned = false;
+    bool        secure = false;
 };
 
 class CookieStore {
 public:
-	const std::vector<Cookie>& entries() const { return jar_; }
-	void erase(std::string_view name, std::string_view domain = {}, std::string_view path = {});
-	const std::string get(std::string_view name) const;
-	slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true);
-	slim::SlimValue set(std::string_view string);
-	slim::SlimValue set_cookies(std::string_view string);
+    const std::vector<Cookie>& entries() const { return store; }
+    void erase(std::string_view name, std::string_view domain = {}, std::string_view path = {});
+    const std::string get(std::string_view name) const;
+    slim::SlimValue set(Cookie&& cookie, const bool validate_expiry = true);
+    slim::SlimValue set(std::string_view string);
+    slim::SlimValue set_cookies(std::string_view string);
     slim::SlimValue set(std::string_view name, std::string_view value);
-	std::string serialize();
-	std::string serialize_headers();
+    std::string serialize();
+    std::string serialize_headers();
 
 private:
-    std::vector<Cookie> jar_;
+    std::vector<Cookie> store;
 };
 
 } // slim::common::http
