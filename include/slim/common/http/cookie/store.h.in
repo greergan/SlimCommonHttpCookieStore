@@ -1,6 +1,7 @@
 #ifndef SLIM_COMMON_HTTP_COOKIE_STORE_H
 #define SLIM_COMMON_HTTP_COOKIE_STORE_H
 
+#include <exception>
 #include <cctype>
 #include <memory>
 #include <string>
@@ -9,28 +10,61 @@
 
 #include <slim/common/http/cookie.h>
 
-#include <slim/SlimValue.hpp>
-
 #define SLIMCOMMONHTTPCOOKIESTORE_VERSION  "@SLIMCOMMONHTTPCOOKIESTORE_VERSION@"
 #define SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH "@SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH@"
 
 namespace slim::common::http {
 
+enum class CookieStoreStatus : uint8_t {
+    OK = 0,
+    EmptyCookieString,
+    InvalidCookieName,
+    InvalidCookieValue,
+    MalformedCookieMissingEquals,
+    MalformedCookiePairMissingEquals,
+    Count
+};
+
+namespace cookie::store::status {
+    constexpr std::array<std::string_view, static_cast<std::size_t>(CookieStoreStatus::Count)> strings = {
+        "OK",
+        "Cookie string is empty",
+        "Invalid cookie name",
+        "Invalid cookie value",
+        "Malformed cookie: missing '='",
+        "Malformed cookie pair: missing '='"
+    };
+
+    [[nodiscard]] constexpr std::string_view to_string(CookieStoreStatus status) noexcept {
+        const auto index = static_cast<std::size_t>(status);
+        if (index < strings.size()) return strings[index];
+        return "Unknown";
+    }
+}
+
+class CookieStoreException : public std::logic_error {
+public:
+    explicit CookieStoreException(CookieStoreStatus e) :
+        std::logic_error("Invalid CookieStore: " + std::string{cookie::store::status::to_string(e)}) {}
+    explicit CookieStoreException(std::string msg) : std::logic_error(msg) {}
+};
+
 class CookieStore {
 public:
     const std::vector<std::shared_ptr<Cookie>>& entries() const { return store; }
-    void erase(std::string_view name, std::string_view domain, std::string_view path);
-    const std::string get(std::string_view name) const;
-    slim::SlimValue set(std::string_view string);
-    slim::SlimValue set(std::string_view name, std::string_view value);
-    slim::SlimValue set(Cookie&& cookie);
-    slim::SlimValue set(std::shared_ptr<Cookie> cookie);
-    slim::SlimValue set_cookies(std::string_view string);
+    void erase(std::string_view name, std::string_view domain, std::string_view path) noexcept;
+    std::shared_ptr<Cookie> get(std::string_view name, std::string_view domain = {}, std::string_view path = {}) const noexcept;
+    CookieStoreStatus set(std::string_view string) noexcept;
+    CookieStoreStatus set(std::string_view name, std::string_view value) noexcept;
+    CookieStoreStatus set(Cookie&& cookie) noexcept;
+    CookieStoreStatus set(std::shared_ptr<Cookie> cookie) noexcept;
+    CookieStoreStatus set_cookies(std::string_view string) noexcept;
     std::string serialize();
 
 private:
     std::vector<std::shared_ptr<Cookie>> store;
 };
 
-} // slim::common::http
+} // namespace slim::common::http
+
 #endif // SLIM_COMMON_HTTP_COOKIE_STORE_H
