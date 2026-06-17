@@ -1,0 +1,42 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    container:
+      image: slim-toolchain
+      options: --privileged
+
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+
+      - name: Checkout SlimLibraryPackager
+        uses: actions/checkout@v4
+        with:
+          repository: greergan/SlimLibraryPackager
+          path: SlimLibraryPackager
+          ref: master
+
+      - name: Update env
+        run: |
+          chmod +x ./SlimLibraryPackager/update_env.sh
+          ./SlimLibraryPackager/update_env.sh
+
+      - name: Build
+        run: |
+          if [ -z "${{ vars.GIT_URL }}" ]; then
+            echo "Error: GIT_URL variable is not set in Forgejo UI."
+            exit 1
+          fi
+          if [ -z "${{ vars.REPO_OWNER }}" ]; then
+            echo "Error: REPO_OWNER variable is not set in Forgejo UI."
+            exit 1
+          fi
+          make RELEASE_TYPE=RELEASE SHARED_ONLY=OFF SLIM_GIT_URL="${{ vars.GIT_URL }}" SLIM_GIT_REPO_OWNER="${{ vars.REPO_OWNER }}"
