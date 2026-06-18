@@ -8,7 +8,7 @@ Acts as a validating, deduplicating collection of [SlimCommonHttpCookie](https:/
 Used as the backing store for the [SlimTS](https://codeberg.org/greergan/SlimTS) Javascript CookieStore object.  
 Part of the [SlimCommon](https://codeberg.org/greergan/SlimCommon) library.  
 Dependency of the [SlimCommonHttpHeaders](https://codeberg.org/greergan/SlimCommonHttpHeaders) micro-library.  
-Built using [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager).
+Built using [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager).  
 CI/CD supplied by unified workflows provided by [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager).
 
 ## Table of Contents
