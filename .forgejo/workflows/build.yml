@@ -62,4 +62,5 @@ jobs:
             The build job "${{ github.job }}" failed on branch "${{ github.ref_name }}".
             Commit: ${{ github.sha }}
             
-            Please check the Forgejo Actions logs for more details.
+            View the detailed build logs here:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
