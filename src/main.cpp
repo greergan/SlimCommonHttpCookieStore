@@ -106,8 +106,9 @@ CookieStatus CookieStore::set(std::string_view name, std::string_view value) noe
         Cookie c(name, value);
         return set(std::move(c));
     } catch (const CookieException& e) {
-        // Map your internal CookieStatus to your CookieStatus
-        return CookieStatus::InvalidCookieName; // Or a more granular error
+        if(e.error() > CookieStatus::OK)
+            return e.error();
+        return CookieStatus::InvalidCookieName;
     }
 }
 
