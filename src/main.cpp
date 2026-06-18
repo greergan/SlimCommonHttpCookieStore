@@ -102,14 +102,12 @@ CookieStatus CookieStore::set(std::shared_ptr<Cookie> cookie) noexcept {
 }
 
 CookieStatus CookieStore::set(std::string_view name, std::string_view value) noexcept {
-    try {
-        Cookie c(name, value);
-        return set(std::move(c));
-    } catch (const CookieException& e) {
-        if(e.error() > CookieStatus::OK)
-            return e.error();
-        return CookieStatus::InvalidCookieName;
-    }
+    Cookie c;
+    auto e = c.set_name(name);
+    if(e != CookieStatus::OK) return e;
+    e = c.set_value(value);
+    if(e != CookieStatus::OK) return e;
+    return set(std::move(c));
 }
 
 CookieStatus CookieStore::set(std::string_view string) noexcept {
