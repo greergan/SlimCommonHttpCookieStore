@@ -93,3 +93,26 @@ jobs:
                  "$BASE_URL/$FILENAME" \
                  || { echo "Failed to publish $FILENAME"; exit 1; }
           done
+
+      - name: Send mail on failure
+        if: failure()
+        uses: https://github.com/dawidd6/action-send-mail@v3
+        with:
+          # Server Configuration (from Forgejo Variables)
+          server_address: ${{ vars.SMTP_SERVER_ADDR }}
+          server_port: ${{ vars.SMTP_SERVER_PORT }}
+          
+          # Credentials (Username is a var, Password is a secret)
+          username: ${{ vars.SMTP_USER }}
+          password: ${{ secrets.SMTP_SERVER_PASSWORD }}
+          
+          # Email Details (Wrapped subject in quotes to fix YAML parsing)
+          subject: "🚨 Build Failed: ${{ github.repository }}"
+          to: ${{ vars.NOTIFICATIONS_EMAIL }}
+          from: ${{ vars.NOTIFICATIONS_FROM_EMAIL }}
+          body: |
+            The build job "${{ github.job }}" failed on branch "${{ github.ref_name }}".
+            Commit: ${{ github.sha }}
+            
+            View the detailed build logs here:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_number }}
