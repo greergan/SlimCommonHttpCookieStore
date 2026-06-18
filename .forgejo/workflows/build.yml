@@ -63,4 +63,4 @@ jobs:
             Commit: ${{ github.sha }}
             
             View the detailed build logs here:
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_number }}
