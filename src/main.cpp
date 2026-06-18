@@ -86,11 +86,11 @@ std::shared_ptr<Cookie> CookieStore::get(std::string_view name,
     return (it != store.end()) ? *it : nullptr;
 }
 
-CookieStoreStatus CookieStore::set(Cookie&& cookie) noexcept {
+CookieStatus CookieStore::set(Cookie&& cookie) noexcept {
     return set(std::make_shared<Cookie>(std::move(cookie)));
 }
 
-CookieStoreStatus CookieStore::set(std::shared_ptr<Cookie> cookie) noexcept {
+CookieStatus CookieStore::set(std::shared_ptr<Cookie> cookie) noexcept {
     auto it = std::find_if(store.begin(), store.end(), [&](const std::shared_ptr<Cookie>& c) {
         return *c == *cookie;
     });
@@ -98,31 +98,31 @@ CookieStoreStatus CookieStore::set(std::shared_ptr<Cookie> cookie) noexcept {
     if (it != store.end()) *it = cookie;
     else store.push_back(cookie);
 
-    return CookieStoreStatus::OK;
+    return CookieStatus::OK;
 }
 
-CookieStoreStatus CookieStore::set(std::string_view name, std::string_view value) noexcept {
+CookieStatus CookieStore::set(std::string_view name, std::string_view value) noexcept {
     try {
         Cookie c(name, value);
         return set(std::move(c));
     } catch (const CookieException& e) {
-        // Map your internal CookieStatus to your CookieStoreStatus
-        return CookieStoreStatus::InvalidCookieName; // Or a more granular error
+        // Map your internal CookieStatus to your CookieStatus
+        return CookieStatus::InvalidCookieName; // Or a more granular error
     }
 }
 
-CookieStoreStatus CookieStore::set(std::string_view string) noexcept {
+CookieStatus CookieStore::set(std::string_view string) noexcept {
     auto parts = split(string, ';');
-    if (parts.empty()) return CookieStoreStatus::EmptyCookieString;
+    if (parts.empty()) return CookieStatus::EmptyCookieString;
 
     size_t kv_sep = parts[0].find('=');
     if (kv_sep == std::string_view::npos) {
-        return CookieStoreStatus::MalformedCookieMissingEquals;
+        return CookieStatus::MalformedCookieMissingEquals;
     }
 
     Cookie cookie;
-    if (cookie.set_name(trim(parts[0].substr(0, kv_sep))) != CookieStatus::OK) return CookieStoreStatus::InvalidCookieName;
-    if (cookie.set_value(trim(parts[0].substr(kv_sep + 1))) != CookieStatus::OK) return CookieStoreStatus::InvalidCookieValue;
+    if (cookie.set_name(trim(parts[0].substr(0, kv_sep))) != CookieStatus::OK) return CookieStatus::InvalidCookieName;
+    if (cookie.set_value(trim(parts[0].substr(kv_sep + 1))) != CookieStatus::OK) return CookieStatus::InvalidCookieValue;
 
     for (size_t i = 1; i < parts.size(); ++i) {
         std::string_view part = trim(parts[i]);
@@ -147,18 +147,18 @@ CookieStoreStatus CookieStore::set(std::string_view string) noexcept {
     return set(std::move(cookie));
 }
 
-CookieStoreStatus CookieStore::set_cookies(std::string_view sv) noexcept {
+CookieStatus CookieStore::set_cookies(std::string_view sv) noexcept {
     auto pairs = split(sv, ';');
     for (std::string_view pair : pairs) {
         if (pair.empty()) continue;
 
         size_t sep = pair.find('=');
         if (sep == std::string_view::npos) {
-            return CookieStoreStatus::MalformedCookiePairMissingEquals;
+            return CookieStatus::MalformedCookiePairMissingEquals;
         }
-        if (auto r = set(pair.substr(0, sep), pair.substr(sep + 1)); r != CookieStoreStatus::OK) return r;
+        if (auto r = set(pair.substr(0, sep), pair.substr(sep + 1)); r != CookieStatus::OK) return r;
     }
-    return CookieStoreStatus::OK;
+    return CookieStatus::OK;
 }
 
 std::string CookieStore::serialize() {
