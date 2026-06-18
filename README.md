@@ -21,7 +21,6 @@ CI/CD supplied by unified workflows provided by [SlimLibraryPackager](https://co
   - [Setters](#setters)
   - [Getters and queries](#getters-and-queries)
   - [Serialization](#serialization)
-  - [Design notes](#design-notes)
 - [Building](#building)
 - [Dependencies](#dependencies)
 - [Examples](#examples)
