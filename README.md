@@ -9,6 +9,7 @@ Used as the backing store for the [SlimTS](https://codeberg.org/greergan/SlimTS)
 Part of the [SlimCommon](https://codeberg.org/greergan/SlimCommon) library.  
 Dependency of the [SlimCommonHttpHeaders](https://codeberg.org/greergan/SlimCommonHttpHeaders) micro-library.  
 Built using [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager).
+CI/CD supplied by unified workflows provided by [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager).
 
 ## Table of Contents
 
@@ -23,6 +24,7 @@ Built using [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPacka
   - [Design notes](#design-notes)
 - [Building](#building)
 - [Dependencies](#dependencies)
+- [Workflows](#workflows)
 - [Examples](#examples)
 
 ## Overview
@@ -36,7 +38,7 @@ This library provides a strict, validation-heavy collection type for managing mu
 - Status reporting via the same `CookieStatus` enum used by [`SlimCommonHttpCookie`](https://codeberg.org/greergan/SlimCommonHttpCookie)
 - Heavy use of `noexcept`
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ## Features
 
@@ -50,7 +52,7 @@ This library provides a strict, validation-heavy collection type for managing mu
 | Replace-on-match | Setting a cookie matching an existing identity updates it in place |
 | Serialize | Concatenates `Set-Cookie` headers for every stored cookie |
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ## Core API
 
@@ -60,7 +62,7 @@ This library provides a strict, validation-heavy collection type for managing mu
 slim::common::http::CookieStore store;
 ```
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ### Constructors and object lifetime
 
@@ -68,7 +70,7 @@ slim::common::http::CookieStore store;
 |------|-------------|
 | `CookieStore()` | Default constructor, produces an empty store |
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ### Setters
 
@@ -81,7 +83,7 @@ slim::common::http::CookieStore store;
 | `CookieStatus set_cookies(std::string_view string) noexcept` | Parses a `Cookie`-request-header-style batch of semicolon-delimited `name=value` pairs and stores each one |
 | `void erase(std::string_view name, std::string_view domain, std::string_view path) noexcept` | Removes the cookie matching the given name, domain, and path, if present |
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ### Getters and queries
 
@@ -90,7 +92,7 @@ slim::common::http::CookieStore store;
 | `std::shared_ptr<Cookie> get(std::string_view name, std::string_view domain = {}, std::string_view path = {}) const noexcept` | The matching stored cookie, or `nullptr` if not found |
 | `const std::vector<std::shared_ptr<Cookie>>& entries() const` | The full underlying collection of stored cookies |
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ### Serialization
 
@@ -101,7 +103,7 @@ std::string CookieStore::serialize();
 
 Iterates the store and concatenates the `serialize()` output of every entry. Can throw if any stored cookie fails its own validation during serialization — see [`Cookie::serialize()`](https://codeberg.org/greergan/SlimCommonHttpCookie#serialization).
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ### Design notes
 
@@ -111,13 +113,13 @@ A couple of API decisions are intentional and worth calling out explicitly, sinc
 
 **`entries()` returns mutable `shared_ptr<Cookie>`.** This is deliberate. Callers may dereference an entry and call its non-`const` setters to mutate a stored cookie's attributes in place, without going through `CookieStore::set`. This intentionally bypasses `set`'s identity-matching and replace-on-match logic — it's the supported path for updating an existing cookie's attributes (e.g. flipping `Secure` or refreshing `Max-Age`) without that update being treated as a new, separate entry. Code that wants a read-only view should treat returned entries as read-only by convention rather than relying on the type system to enforce it.
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ## Building
 
 This library is built using [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager). See that repository for build instructions.
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
 
 ## Dependencies
 
@@ -127,7 +129,14 @@ External package dependencies for this library are declared in the `required_pac
 SlimCommonHttpCookie
 ```
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
+
+
+## Workflows
+
+Forgejo Workflows are provided by [SlimLibraryPackager](http://codeberg.org/greergan/SlimLibraryPackager)
+
+[↑ Top](#table-of-contents)
 
 ## Examples
 
@@ -172,4 +181,4 @@ catch (const slim::common::http::CookieException& e) {
 }
 ```
 
-[↑ Top](#slimcommonhttpcookiestore)
+[↑ Top](#table-of-contents)
