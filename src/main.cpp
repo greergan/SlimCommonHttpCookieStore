@@ -160,7 +160,7 @@ CookieStatus CookieStore::set_cookies(std::string_view sv) noexcept {
     return CookieStatus::OK;
 }
 
-std::string CookieStore::serialize() {
+std::string CookieStore::serialize() const {
     std::string headers;
     for (const auto& cookie : store) headers += cookie->serialize();
     return headers;

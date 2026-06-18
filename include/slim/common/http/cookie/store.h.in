@@ -25,7 +25,7 @@ public:
     CookieStatus set(Cookie&& cookie) noexcept;
     CookieStatus set(std::shared_ptr<Cookie> cookie) noexcept;
     CookieStatus set_cookies(std::string_view string) noexcept;
-    std::string serialize();
+    std::string serialize() const;
 
 private:
     std::vector<std::shared_ptr<Cookie>> store;
