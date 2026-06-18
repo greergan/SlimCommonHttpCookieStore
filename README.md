@@ -24,7 +24,6 @@ CI/CD supplied by unified workflows provided by [SlimLibraryPackager](https://co
   - [Design notes](#design-notes)
 - [Building](#building)
 - [Dependencies](#dependencies)
-- [Workflows](#workflows)
 - [Examples](#examples)
 
 ## Overview
@@ -105,16 +104,6 @@ Iterates the store and concatenates the `serialize()` output of every entry. Can
 
 [↑ Top](#table-of-contents)
 
-### Design notes
-
-A couple of API decisions are intentional and worth calling out explicitly, since they could otherwise look like oversights:
-
-**`set` vs. `set_cookies`.** These are not interchangeable, despite the shared prefix. `set` (in its string-parsing overload) consumes the shape of a single `Set-Cookie` *response* header — one cookie name/value followed by its attributes (`Domain`, `Path`, `Secure`, and so on). `set_cookies` consumes the shape of a `Cookie` *request* header — a flat, semicolon-delimited list of `name=value` pairs with no attributes at all. Reaching for the wrong one will parse without error but produce the wrong result (e.g. attribute-looking tokens passed to `set_cookies` get stored as literal cookie values, not interpreted as attributes), so the header you're consuming determines which method applies.
-
-**`entries()` returns mutable `shared_ptr<Cookie>`.** This is deliberate. Callers may dereference an entry and call its non-`const` setters to mutate a stored cookie's attributes in place, without going through `CookieStore::set`. This intentionally bypasses `set`'s identity-matching and replace-on-match logic — it's the supported path for updating an existing cookie's attributes (e.g. flipping `Secure` or refreshing `Max-Age`) without that update being treated as a new, separate entry. Code that wants a read-only view should treat returned entries as read-only by convention rather than relying on the type system to enforce it.
-
-[↑ Top](#table-of-contents)
-
 ## Building
 
 This library is built using [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager). See that repository for build instructions.
@@ -128,13 +117,6 @@ External package dependencies for this library are declared in the `required_pac
 ```
 SlimCommonHttpCookie
 ```
-
-[↑ Top](#table-of-contents)
-
-
-## Workflows
-
-Forgejo Workflows are provided by [SlimLibraryPackager](http://codeberg.org/greergan/SlimLibraryPackager)
 
 [↑ Top](#table-of-contents)
 
