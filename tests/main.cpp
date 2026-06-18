@@ -245,7 +245,7 @@ TEST_CASE("erase - removes an existing entry by name, path, and domain", "[cooki
     c.set_domain("example.com");
     REQUIRE(store.set(std::move(c)) == CookieStatus::OK);
 
-    store.erase("k", "/", "example.com");
+    store.erase("k", "example.com", "/");
     REQUIRE(store.get("k") == nullptr);
     REQUIRE(store.entries().empty());
 }

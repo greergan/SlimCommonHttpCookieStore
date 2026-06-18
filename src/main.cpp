@@ -39,7 +39,7 @@ std::vector<std::string_view> split(std::string_view str, char delim) noexcept {
 
 } // anonymous namespace
 
-void CookieStore::erase(std::string_view name, std::string_view path, std::string_view domain) noexcept {
+void CookieStore::erase(std::string_view name, std::string_view domain, std::string_view path) noexcept {
     // Use the erase-remove idiom to physically remove the element from the vector
     store.erase(
         std::remove_if(store.begin(), store.end(), [&](const std::shared_ptr<Cookie>& c) {
