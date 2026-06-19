@@ -28,7 +28,7 @@ public:
     std::string serialize() const;
 
 private:
-    std::vector<std::shared_ptr<Cookie>> store;
+    std::vector<std::shared_ptr<Cookie>> store{};
 };
 
 } // namespace slim::common::http
