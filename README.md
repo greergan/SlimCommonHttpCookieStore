@@ -19,7 +19,7 @@ CI/CD supplied by unified workflows provided by [SlimLibraryPackager](https://co
   - [CookieStore class](#cookiestore-class)
   - [Constructors and object lifetime](#constructors-and-object-lifetime)
   - [Setters](#setters)
-  - [Getters and queries](#getters-and-queries)
+  - [Getters](#getters)
   - [Serialization](#serialization)
 - [Building](#building)
 - [Dependencies](#dependencies)
@@ -83,7 +83,7 @@ slim::common::http::CookieStore store;
 
 [↑ Top](#table-of-contents)
 
-### Getters and queries
+### Getters
 
 | Method | Returns |
 |--------|---------|
