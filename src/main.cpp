@@ -163,12 +163,9 @@ CookieStatus CookieStore::set_cookies(std::string_view sv) noexcept {
 std::string CookieStore::serialize() const {
     std::string headers;
 
-    // Dynamically reserve space based on the number of cookies.
-    // Use 512 for standard session IDs, or 1536 if storing heavy JWTs.
-    headers.reserve(store.size() * 512);
-
     for (const auto& cookie : store)
         if(cookie) headers += cookie->serialize();
+
     return headers;
 }
 
