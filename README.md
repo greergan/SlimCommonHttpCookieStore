@@ -16,6 +16,8 @@ CI/CD supplied by unified workflows provided by [SlimLibraryPackager](https://co
 - [Overview](#overview)
 - [Features](#features)
 - [Core API](#core-api)
+  - [ErrorStatus enum](#errorstatus-enum)
+  - [HttpHeaderException](#httpheaderexception)
   - [CookieStore class](#cookiestore-class)
   - [Constructors and object lifetime](#constructors-and-object-lifetime)
   - [Setters](#setters)
@@ -33,7 +35,7 @@ This library provides a strict, validation-heavy collection type for managing mu
 - Two independent parsing entry points for the two cookie-bearing HTTP headers (`Set-Cookie` vs `Cookie`)
 - Replace-on-match semantics — setting a cookie that matches an existing entry's identity updates it in place rather than duplicating it
 - Shared ownership of stored cookies via `std::shared_ptr<Cookie>`
-- Status reporting via the same `CookieStatus` enum used by [`SlimCommonHttpCookie`](https://codeberg.org/greergan/SlimCommonHttpCookie)
+- Status reporting via the same `ErrorStatus` enum used by [`SlimCommonHttpCookie`](https://codeberg.org/greergan/SlimCommonHttpCookie), provided by [SlimCommonHttp](https://codeberg.org/greergan/SlimCommonHttp)
 - Heavy use of `noexcept`
 
 [↑ Top](#table-of-contents)
@@ -49,10 +51,23 @@ This library provides a strict, validation-heavy collection type for managing mu
 | Removal | Erase a stored cookie by name, domain, and path |
 | Replace-on-match | Setting a cookie matching an existing identity updates it in place |
 | Serialize | Concatenates `Set-Cookie` headers for every stored cookie |
+| Error model | Shared `ErrorStatus` enum and `HttpHeaderException` type, from [SlimCommonHttp](https://codeberg.org/greergan/SlimCommonHttp) |
 
 [↑ Top](#table-of-contents)
 
 ## Core API
+
+### ErrorStatus enum
+
+Provided by [SlimCommonHttp](https://codeberg.org/greergan/SlimCommonHttp) `ErrorStatus`.
+
+[↑ Top](#table-of-contents)
+
+### HttpHeaderException
+
+Provided by [SlimCommonHttp](https://codeberg.org/greergan/SlimCommonHttp) `HttpHeaderException`.
+
+[↑ Top](#table-of-contents)
 
 ### CookieStore class
 
@@ -74,11 +89,11 @@ slim::common::http::CookieStore store;
 
 | Method | Description |
 |--------|-------------|
-| `CookieStatus set(std::string_view string) noexcept` | Parses a single `Set-Cookie`-style string — one cookie name/value plus its attributes — and stores it |
-| `CookieStatus set(std::string_view name, std::string_view value) noexcept` | Constructs and stores a cookie directly from a name/value pair |
-| `CookieStatus set(Cookie&& cookie) noexcept` | Takes ownership of an existing `Cookie` by move and stores it |
-| `CookieStatus set(std::shared_ptr<Cookie> cookie) noexcept` | Stores a cookie via shared ownership |
-| `CookieStatus set_cookies(std::string_view string) noexcept` | Parses a `Cookie`-request-header-style batch of semicolon-delimited `name=value` pairs and stores each one |
+| `ErrorStatus set(std::string_view string) noexcept` | Parses a single `Set-Cookie`-style string — one cookie name/value plus its attributes — and stores it |
+| `ErrorStatus set(std::string_view name, std::string_view value) noexcept` | Constructs and stores a cookie directly from a name/value pair |
+| `ErrorStatus set(Cookie&& cookie) noexcept` | Takes ownership of an existing `Cookie` by move and stores it |
+| `ErrorStatus set(std::shared_ptr<Cookie> cookie) noexcept` | Stores a cookie via shared ownership |
+| `ErrorStatus set_cookies(std::string_view string) noexcept` | Parses a `Cookie`-request-header-style batch of semicolon-delimited `name=value` pairs and stores each one |
 | `void erase(std::string_view name, std::string_view domain, std::string_view path) noexcept` | Removes the cookie matching the given name, domain, and path, if present |
 
 [↑ Top](#table-of-contents)
@@ -99,7 +114,7 @@ std::string CookieStore::serialize();
 // -> concatenation of each stored cookie's "Set-Cookie: ...\r\n" header
 ```
 
-Iterates the store and concatenates the `serialize()` output of every entry. Can throw if any stored cookie fails its own validation during serialization — see [`Cookie::serialize()`](https://codeberg.org/greergan/SlimCommonHttpCookie#serialization).
+Iterates the store and concatenates the `serialize()` output of every entry. Throws `HttpHeaderException` if any stored cookie fails its own validation during serialization — see [`Cookie::serialize()`](https://codeberg.org/greergan/SlimCommonHttpCookie#serialization).
 
 [↑ Top](#table-of-contents)
 
@@ -114,9 +129,11 @@ This library is built using [SlimLibraryPackager](https://codeberg.org/greergan/
 External package dependencies for this library are declared in the [`required_packages`](https://codeberg.org/greergan/SlimCommonHttpCookieStore/src/branch/master/required_packages) file at the repository root. This file is read by [SlimLibraryPackager](https://codeberg.org/greergan/SlimLibraryPackager) during the build process to resolve dependencies and install them if not present.
 
 ```
+SlimCommonHttp
 SlimCommonHttpCookie
 ```
 
+- [SlimCommonHttp](https://codeberg.org/greergan/SlimCommonHttp)
 - [SlimCommonHttpCookie](https://codeberg.org/greergan/SlimCommonHttpCookie)
 
 [↑ Top](#table-of-contents)
@@ -127,16 +144,16 @@ SlimCommonHttpCookie
 // Parsing a Set-Cookie response header
 slim::common::http::CookieStore store;
 
-CookieStatus e = store.set("session=abc123; Path=/; Secure; SameSite=Strict");
-if (e != CookieStatus::OK) return e;
+ErrorStatus e = store.set("session=abc123; Path=/; Secure; SameSite=Strict");
+if (e != ErrorStatus::OK) return e;
 ```
 
 ```cpp
 // Parsing a Cookie request header (multiple cookies, no attributes)
 slim::common::http::CookieStore store;
 
-CookieStatus e = store.set_cookies("session=abc123; theme=dark; locale=en-US");
-if (e != CookieStatus::OK) return e;
+ErrorStatus e = store.set_cookies("session=abc123; theme=dark; locale=en-US");
+if (e != ErrorStatus::OK) return e;
 ```
 
 ```cpp
@@ -159,7 +176,7 @@ try {
     auto headers = store.serialize();
     // -> "Set-Cookie: session=abc123; Path=/; Secure\r\nSet-Cookie: theme=dark\r\n..."
 }
-catch (const slim::common::http::CookieException& e) {
+catch (const slim::common::http::HttpHeaderException& e) {
     std::cerr << "Cookie serialization failed: " << e.what() << '\n';
 }
 ```
