@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <slim/common/http/cookie.h>
+#include <slim/common/http/error_codes.h>
 
 #define SLIMCOMMONHTTPCOOKIESTORE_VERSION  "@SLIMCOMMONHTTPCOOKIESTORE_VERSION@"
 #define SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH "@SLIMCOMMONHTTPCOOKIESTORE_GIT_HASH@"
@@ -20,11 +21,11 @@ public:
     const std::vector<std::shared_ptr<Cookie>>& entries() const { return store; }
     void erase(std::string_view name, std::string_view domain, std::string_view path) noexcept;
     std::shared_ptr<Cookie> get(std::string_view name, std::string_view domain = {}, std::string_view path = {}) const noexcept;
-    CookieStatus set(std::string_view string) noexcept;
-    CookieStatus set(std::string_view name, std::string_view value) noexcept;
-    CookieStatus set(Cookie&& cookie) noexcept;
-    CookieStatus set(std::shared_ptr<Cookie> cookie) noexcept;
-    CookieStatus set_cookies(std::string_view string) noexcept;
+    ErrorStatus set(std::string_view string) noexcept;
+    ErrorStatus set(std::string_view name, std::string_view value) noexcept;
+    ErrorStatus set(Cookie&& cookie) noexcept;
+    ErrorStatus set(std::shared_ptr<Cookie> cookie) noexcept;
+    ErrorStatus set_cookies(std::string_view string) noexcept;
     std::string serialize() const;
 
 private:
