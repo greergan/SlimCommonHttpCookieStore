@@ -1,4 +1,4 @@
 # PackageName [minVersion [maxVersion]]
 SlimCommonHttp
 SlimCommonHttpCookie 0.9.4
-SlimCommonUtilities 0.10.0
+SlimCommonUtilities 0.11.0
