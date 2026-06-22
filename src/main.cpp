@@ -6,38 +6,9 @@
 
 #include <slim/common/http/cookie.h>
 #include <slim/common/http/cookie/store.h>
+#include <slim/common/utilities.h>
 
 namespace slim::common::http {
-
-namespace {
-
-bool iequals(std::string_view lhs, std::string_view rhs) noexcept {
-    if (lhs.size() != rhs.size()) return false;
-    for (size_t i = 0; i < lhs.size(); ++i)
-        if (std::tolower(static_cast<unsigned char>(lhs[i])) != static_cast<unsigned char>(rhs[i])) return false;
-    return true;
-}
-
-std::string_view trim(std::string_view str) noexcept {
-    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.front()))) str.remove_prefix(1);
-    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.back()))) str.remove_suffix(1);
-    return str;
-}
-
-std::vector<std::string_view> split(std::string_view str, char delim) noexcept {
-    std::vector<std::string_view> tokens;
-    size_t start = 0;
-    size_t end = str.find(delim);
-    while (end != std::string_view::npos) {
-        if (start != end) tokens.push_back(str.substr(start, end - start));
-        start = end + 1;
-        end = str.find(delim, start);
-    }
-    if (start < str.size()) tokens.push_back(str.substr(start));
-    return tokens;
-}
-
-} // anonymous namespace
 
 void CookieStore::erase(std::string_view name, std::string_view domain, std::string_view path) noexcept {
     // Use the erase-remove idiom to physically remove the element from the vector
@@ -111,7 +82,7 @@ ErrorStatus CookieStore::set(std::string_view name, std::string_view value) noex
 }
 
 ErrorStatus CookieStore::set(std::string_view string) noexcept {
-    auto parts = split(string, ';');
+    auto parts = slim::common::utilities::split(string, ';');
     if (parts.empty()) return ErrorStatus::CookieEmptyString;
 
     size_t kv_sep = parts[0].find('=');
@@ -120,34 +91,36 @@ ErrorStatus CookieStore::set(std::string_view string) noexcept {
     }
 
     Cookie cookie;
-    if (cookie.set_name(trim(parts[0].substr(0, kv_sep))) != ErrorStatus::OK) return ErrorStatus::CookieInvalidName;
-    if (cookie.set_value(trim(parts[0].substr(kv_sep + 1))) != ErrorStatus::OK) return ErrorStatus::CookieInvalidValue;
+    if (cookie.set_name(parts[0].substr(0, kv_sep)) != ErrorStatus::OK) return ErrorStatus::CookieInvalidName;
+    if (cookie.set_value(parts[0].substr(kv_sep + 1)) != ErrorStatus::OK) return ErrorStatus::CookieInvalidValue;
 
     for (size_t i = 1; i < parts.size(); ++i) {
-        std::string_view part = trim(parts[i]);
+        std::string part;
+        slim::common::utilities::trim(parts[i], part);
         if (part.empty()) continue;
 
         size_t eq_pos = part.find('=');
-        if (eq_pos == std::string_view::npos) {
-            if (iequals(part, "secure")) cookie.set_secure("true");
-            else if (iequals(part, "httponly")) cookie.set_httponly("true");
-            else if (iequals(part, "partitioned")) cookie.set_partitioned("true");
+        if (eq_pos == std::string::npos) {
+            if (slim::common::utilities::iequals(part, "secure")) cookie.set_secure("true");
+            else if (slim::common::utilities::iequals(part, "httponly")) cookie.set_httponly("true");
+            else if (slim::common::utilities::iequals(part, "partitioned")) cookie.set_partitioned("true");
         } else {
-            std::string_view key = trim(part.substr(0, eq_pos));
-            std::string_view val = part.substr(eq_pos + 1);
+            std::string key;
+            slim::common::utilities::trim(std::string_view(part).substr(0, eq_pos), key);
+            std::string_view val = std::string_view(part).substr(eq_pos + 1);
 
-            if (iequals(key, "domain")) cookie.set_domain(val);
-            else if (iequals(key, "expires")) cookie.set_expires(val);
-            else if (iequals(key, "max-age")) cookie.set_max_age(val);
-            else if (iequals(key, "path")) cookie.set_path(val);
-            else if (iequals(key, "samesite")) cookie.set_same_site(val);
+            if (slim::common::utilities::iequals(key, "domain")) cookie.set_domain(val);
+            else if (slim::common::utilities::iequals(key, "expires")) cookie.set_expires(val);
+            else if (slim::common::utilities::iequals(key, "max-age")) cookie.set_max_age(val);
+            else if (slim::common::utilities::iequals(key, "path")) cookie.set_path(val);
+            else if (slim::common::utilities::iequals(key, "samesite")) cookie.set_same_site(val);
         }
     }
     return set(std::move(cookie));
 }
 
 ErrorStatus CookieStore::set_cookies(std::string_view sv) noexcept {
-    auto pairs = split(sv, ';');
+    auto pairs = slim::common::utilities::split(sv, ';');
     for (std::string_view pair : pairs) {
         if (pair.empty()) continue;
 
