@@ -130,11 +130,13 @@ External package dependencies for this library are declared in the [`required_pa
 
 ```
 SlimCommonHttp
-SlimCommonHttpCookie
+SlimCommonHttpCookie 0.9.4
+SlimCommonUtilities 0.11.0
 ```
 
 - [SlimCommonHttp](https://codeberg.org/greergan/SlimCommonHttp)
-- [SlimCommonHttpCookie](https://codeberg.org/greergan/SlimCommonHttpCookie)
+- [SlimCommonHttpCookie](https://codeberg.org/greergan/SlimCommonHttpCookie) (>= 0.9.4)
+- [SlimCommonUtilities](https://codeberg.org/greergan/SlimCommonUtilities) (>= 0.11.0)
 
 [↑ Top](#table-of-contents)
 
