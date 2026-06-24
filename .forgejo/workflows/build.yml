@@ -17,6 +17,13 @@ jobs:
       - name: Checkout main repo
         uses: actions/checkout@v4
 
+      - name: Sync to Open WebUI
+        env:
+          OPEN_WEBUI_URL: ${{ vars.OPEN_WEBUI_URL }}
+          OPEN_WEBUI_API_KEY: ${{ secrets.OPEN_WEBUI_API_KEY }}
+        run: |
+          oikb sync . --kb-id ${{ vars.OPEN_WEBUI_API_KEY }}
+
       - name: Checkout SlimLibraryPackager
         uses: actions/checkout@v4
         with:
